@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "animateicons": {
+      "command": "npx",
+      "args": ["-y", "@animateicons/mcp"]
+    }
+  }
+}

@@ -1,0 +1,131 @@
+// EngBoost — Prisma schema
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// v1 is single-user, but every owned row carries userId so multi-user is a
+// straight extension later (just add auth + real user ids).
+model User {
+  id                String             @id @default(cuid())
+  email             String             @unique
+  name              String?
+  createdAt         DateTime           @default(now())
+  decks             Deck[]
+  quizAttempts      QuizAttempt[]
+  readingTexts      ReadingText[]
+  chatMessages      ChatMessage[]
+  sentencePractices SentencePractice[]
+}
+
+model Deck {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  cards       Card[]
+
+  @@index([userId])
+}
+
+// SRS state (SM-2) is embedded on the card — simplest for single-user.
+// For multi-user later, split these fields into a per-user CardState table.
+enum CardState {
+  new
+  learning
+  review
+  mastered
+}
+
+model Card {
+  id        String    @id @default(cuid())
+  deckId    String
+  deck      Deck      @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  term      String
+  ipa       String?
+  meaningEn String?
+  meaningVi String?
+  pos       String? // part of speech (noun, verb, ...)
+  examples  String[] @default([])
+
+  // SM-2 scheduling
+  ease         Float     @default(2.5)
+  intervalDays Int       @default(0)
+  reps         Int       @default(0)
+  lapses       Int       @default(0)
+  dueDate      DateTime  @default(now())
+  state        CardState @default(new)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  practices SentencePractice[]
+
+  @@index([deckId])
+  @@index([dueDate])
+}
+
+// A user-written sentence using a card's term, plus the AI's review of it.
+model SentencePractice {
+  id          String   @id @default(cuid())
+  cardId      String
+  card        Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sentence    String
+  corrected   String?
+  explanation String? // Vietnamese explanation of the fixes
+  usage       String? // feedback on how the target word was used
+  natural     String? // a more natural rewrite
+  score       Int? // 0-10
+  cefr        String? // estimated CEFR level (A1-C1)
+  createdAt   DateTime @default(now())
+
+  @@index([cardId])
+  @@index([userId])
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deckId    String?
+  score     Int
+  total     Int
+  items     Json // [{ cardId, term, prompt, choices, correct, chosen, isCorrect }]
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model ReadingText {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  level     String   @default("B1") // CEFR level
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId String
+  role      String // "user" | "assistant"
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([userId, sessionId])
+}

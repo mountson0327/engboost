@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: engboost-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: engboost
+      POSTGRES_PASSWORD: engboost
+      POSTGRES_DB: engboost
+    ports:
+      # 5433 on host to avoid clashing with other local Postgres (e.g. pst-db on 5432)
+      - "5433:5432"
+    volumes:
+      - engboost-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U engboost -d engboost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  engboost-db-data:
