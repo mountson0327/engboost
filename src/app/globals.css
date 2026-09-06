@@ -134,3 +134,27 @@
     @apply font-sans;
   }
 }
+
+/* Scrollbar hidden by default; a thin one appears on hover (no layout shift). */
+.scrollbar-hover {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.scrollbar-hover:hover {
+  scrollbar-color: color-mix(in srgb, var(--muted-foreground) 45%, transparent)
+    transparent;
+}
+.scrollbar-hover::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.scrollbar-hover::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-hover::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 9999px;
+}
+.scrollbar-hover:hover::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--muted-foreground) 45%, transparent);
+}

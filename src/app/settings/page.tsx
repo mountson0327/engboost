@@ -47,7 +47,7 @@ function Segmented<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="inline-flex max-w-full gap-1 overflow-x-auto rounded-lg border p-1">
+    <div className="scrollbar-hover inline-flex max-w-full gap-1 overflow-x-auto rounded-lg border px-1 py-2">
       {options.map((o) => (
         <button
           key={o.value}
