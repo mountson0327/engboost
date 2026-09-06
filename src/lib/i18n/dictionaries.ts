@@ -45,6 +45,15 @@ export const vi = {
   "admin.created": "Ngày tạo",
   "admin.you": "(bạn)",
   "admin.confirmDelete": "Xoá người dùng này và TOÀN BỘ dữ liệu của họ?",
+  "admin.panel": "Bảng quản trị",
+  "admin.overview": "Tổng quan",
+  "admin.users": "Người dùng",
+  "admin.overviewTitle": "Tổng quan hệ thống",
+  "admin.totalUsers": "Người dùng",
+  "admin.adminCount": "Quản trị viên",
+  "admin.totalDecks": "Bộ từ",
+  "admin.totalCards": "Thẻ",
+  "admin.forbidden": "Bạn không có quyền truy cập trang này.",
 
   // Trash
   "trash.title": "Thùng rác",
@@ -109,6 +118,9 @@ export const vi = {
   "common.speak": "Phát âm",
   "common.save": "Lưu",
   "common.cancel": "Huỷ",
+  "common.prev": "Trước",
+  "common.next": "Sau",
+  "common.pageOf": "Trang {page}/{total}",
 
   // Dashboard
   "dash.welcome": "Chào mừng trở lại 👋",
@@ -214,6 +226,9 @@ export const vi = {
   "review.addCards": "Thêm thẻ mới",
   "review.pickDeck": "Ôn bộ:",
   "review.allDecks": "Tất cả bộ từ",
+  "review.modeDue": "Đến hạn",
+  "review.modeAll": "Tất cả",
+  "review.reviewAgain": "Ôn lại tất cả",
 
   // Quiz
   "quiz.title": "Quiz",
@@ -309,6 +324,15 @@ export const en: Record<TKey, string> = {
   "admin.created": "Created",
   "admin.you": "(you)",
   "admin.confirmDelete": "Delete this user and ALL their data?",
+  "admin.panel": "Admin panel",
+  "admin.overview": "Overview",
+  "admin.users": "Users",
+  "admin.overviewTitle": "System overview",
+  "admin.totalUsers": "Users",
+  "admin.adminCount": "Admins",
+  "admin.totalDecks": "Decks",
+  "admin.totalCards": "Cards",
+  "admin.forbidden": "You do not have access to this page.",
 
   // Trash
   "trash.title": "Trash",
@@ -373,6 +397,9 @@ export const en: Record<TKey, string> = {
   "common.speak": "Pronounce",
   "common.save": "Save",
   "common.cancel": "Cancel",
+  "common.prev": "Prev",
+  "common.next": "Next",
+  "common.pageOf": "Page {page}/{total}",
 
   // Dashboard
   "dash.welcome": "Welcome back 👋",
@@ -478,6 +505,9 @@ export const en: Record<TKey, string> = {
   "review.addCards": "Add cards",
   "review.pickDeck": "Review:",
   "review.allDecks": "All decks",
+  "review.modeDue": "Due",
+  "review.modeAll": "All",
+  "review.reviewAgain": "Review all again",
 
   // Quiz
   "quiz.title": "Quiz",

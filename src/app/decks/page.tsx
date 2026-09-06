@@ -8,8 +8,12 @@ import type { Deck } from "@/lib/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { EmptyState } from "@/components/EmptyState";
+import { Pagination } from "@/components/Pagination";
 import { useI18n } from "@/lib/i18n/provider";
 import { parseImport, templateCsv, templateJson, downloadFile } from "@/lib/io";
+
+const PAGE_SIZE = 8;
 
 export default function DecksPage() {
   const { t } = useI18n();
@@ -21,7 +25,12 @@ export default function DecksPage() {
   const [error, setError] = useState("");
   const [ioNote, setIoNote] = useState("");
   const [importing, setImporting] = useState(false);
+  const [page, setPage] = useState(1);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const totalPages = Math.max(1, Math.ceil(decks.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paged = decks.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   async function load() {
     try {
@@ -164,10 +173,10 @@ export default function DecksPage() {
       {loading ? (
         <p className="text-muted-foreground">{t("common.loading")}</p>
       ) : decks.length === 0 ? (
-        <p className="text-muted-foreground">{t("decks.empty")}</p>
+        <EmptyState message={t("decks.empty")} />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {decks.map((d) => (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {paged.map((d) => (
             <Card
               key={d.id}
               onClick={() => router.push(`/decks/${d.id}`)}
@@ -205,6 +214,13 @@ export default function DecksPage() {
             </Card>
           ))}
         </div>
+      )}
+      {!loading && decks.length > 0 && (
+        <Pagination
+          page={safePage}
+          totalPages={totalPages}
+          onChange={setPage}
+        />
       )}
     </div>
   );

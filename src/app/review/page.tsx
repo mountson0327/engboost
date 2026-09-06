@@ -31,6 +31,7 @@ function ReviewInner() {
     searchParams.get("deckId") ?? "",
   );
 
+  const [mode, setMode] = useState<"due" | "all">("due");
   const [queue, setQueue] = useState<CardType[]>([]);
   const [idx, setIdx] = useState(0);
   const [showBack, setShowBack] = useState(false);
@@ -47,10 +48,10 @@ function ReviewInner() {
     setLoading(true);
     try {
       const limit = getReviewLimit();
-      const qs = selectedDeckId
-        ? `?deckId=${selectedDeckId}&limit=${limit}`
-        : `?limit=${limit}`;
-      const cards = await api<CardType[]>(`/api/review${qs}`);
+      const params = new URLSearchParams({ limit: String(limit) });
+      if (selectedDeckId) params.set("deckId", selectedDeckId);
+      if (mode === "all") params.set("all", "1");
+      const cards = await api<CardType[]>(`/api/review?${params.toString()}`);
       setQueue(cards);
       setIdx(0);
       setShowBack(false);
@@ -64,7 +65,12 @@ function ReviewInner() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDeckId]);
+  }, [selectedDeckId, mode]);
+
+  function changeMode(m: "due" | "all") {
+    setMode(m);
+    setDone(0);
+  }
 
   function onChangeDeck(id: string) {
     setSelectedDeckId(id);
@@ -116,6 +122,22 @@ function ReviewInner() {
           </option>
         ))}
       </NativeSelect>
+      <div className="flex items-center rounded-lg border p-0.5">
+        {(["due", "all"] as const).map((m) => (
+          <button
+            key={m}
+            onClick={() => changeMode(m)}
+            className={cn(
+              "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+              mode === m
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {t(m === "due" ? "review.modeDue" : "review.modeAll")}
+          </button>
+        ))}
+      </div>
     </div>
   );
 
@@ -130,11 +152,19 @@ function ReviewInner() {
         <div className="text-5xl">🎉</div>
         <h1 className="text-xl font-bold">{t("review.doneTitle")}</h1>
         <p className="text-muted-foreground">{t("review.doneBody", { done })}</p>
-        <div className="flex justify-center gap-2">
+        <div className="flex flex-wrap justify-center gap-2">
+          {mode === "due" && (
+            <Button
+              onClick={() => changeMode("all")}
+              className="h-9 px-4"
+            >
+              ↻ {t("review.reviewAgain")}
+            </Button>
+          )}
           <Link href="/" className={cn(buttonVariants({ variant: "outline" }), "h-9 px-4")}>
             {t("review.home")}
           </Link>
-          <Link href="/decks" className={cn(buttonVariants(), "h-9 px-4")}>
+          <Link href="/decks" className={cn(buttonVariants({ variant: "outline" }), "h-9 px-4")}>
             {t("review.addCards")}
           </Link>
         </div>

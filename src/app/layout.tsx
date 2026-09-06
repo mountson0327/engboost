@@ -37,7 +37,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <I18nProvider lang={lang}>
           <AuthProvider>
             <Nav />
-            <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
+            <main className="w-full flex-1 px-4 py-6 sm:px-6 lg:px-8">
               {children}
             </main>
           </AuthProvider>

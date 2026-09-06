@@ -5,6 +5,7 @@ import { api } from "@/lib/client";
 import type { Deck } from "@/lib/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/EmptyState";
 import { useI18n } from "@/lib/i18n/provider";
 import { useAuth } from "@/lib/auth-client";
 
@@ -45,7 +46,7 @@ export default function TrashPage() {
       {error && <p className="text-sm text-danger">{error}</p>}
 
       {decks.length === 0 ? (
-        <p className="text-muted-foreground">{t("trash.empty")}</p>
+        <EmptyState message={t("trash.empty")} />
       ) : (
         <div className="space-y-2">
           {decks.map((d) => (

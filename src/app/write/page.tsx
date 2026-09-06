@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/EmptyState";
 import { useI18n } from "@/lib/i18n/provider";
 import { cn } from "@/lib/utils";
 
@@ -184,7 +185,7 @@ export default function WritePage() {
       <div className="space-y-2">
         <h2 className="font-semibold">{t("write.history")}</h2>
         {history.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("write.noHistory")}</p>
+          <EmptyState message={t("write.noHistory")} />
         ) : (
           history.map((h) => (
             <Card key={h.id} className="p-4">

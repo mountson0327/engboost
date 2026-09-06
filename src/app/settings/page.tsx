@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SunIcon, MoonIcon, MonitorIcon } from "@animateicons/react/lucide";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,12 @@ const MODEL_SUGGEST: Record<AiProvider, string> = {
   openai: "gpt-4o, gpt-4o-mini, gpt-4.1-mini",
   gemini: "gemini-2.0-flash, gemini-1.5-pro",
 };
+
+const SECTIONS: { id: string; labelKey: TKey }[] = [
+  { id: "appearance", labelKey: "settings.appearance" },
+  { id: "review", labelKey: "settings.review" },
+  { id: "ai", labelKey: "settings.ai" },
+];
 
 function Segmented<T extends string>({
   value,
@@ -195,15 +201,86 @@ export default function SettingsPage() {
     system: <MonitorIcon size={16} />,
   };
 
-  return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t("settings.title")}</h1>
-        {saved && <span className="text-sm text-success">{saved}</span>}
-      </div>
+  // Scroll-spy: highlight the section currently in view.
+  const [activeSection, setActiveSection] = useState("appearance");
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) setActiveSection(e.target.id);
+        });
+      },
+      { rootMargin: "-25% 0px -65% 0px", threshold: 0 },
+    );
+    SECTIONS.forEach((s) => {
+      const el = document.getElementById(s.id);
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, []);
 
-      {/* Appearance */}
-      <Card className="p-5">
+  function scrollTo(id: string) {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  }
+
+  // Sliding underline indicator for the section nav.
+  const itemRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const [indicator, setIndicator] = useState({ x: 0, y: 0, w: 0 });
+  useEffect(() => {
+    const el = itemRefs.current[activeSection];
+    if (el)
+      setIndicator({
+        x: el.offsetLeft,
+        y: el.offsetTop + el.offsetHeight - 2,
+        w: el.offsetWidth,
+      });
+  }, [activeSection, lang]);
+
+  return (
+    <div className="mx-auto flex max-w-4xl gap-8">
+      {/* Sticky section nav (scroll-spy) */}
+      <aside className="hidden w-48 shrink-0 md:block">
+        <nav className="sticky top-20">
+          <div className="relative">
+            {SECTIONS.map((s) => (
+              <button
+                key={s.id}
+                ref={(el) => {
+                  itemRefs.current[s.id] = el;
+                }}
+                onClick={() => scrollTo(s.id)}
+                className={cn(
+                  "block w-fit px-1 py-2 text-left text-sm font-medium transition-colors duration-200",
+                  activeSection === s.id
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {t(s.labelKey)}
+              </button>
+            ))}
+            {/* Sliding underline that follows the active section. */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-0 top-0 h-0.5 rounded-full bg-primary transition-all duration-300 ease-out"
+              style={{
+                transform: `translate(${indicator.x}px, ${indicator.y}px)`,
+                width: indicator.w,
+              }}
+            />
+          </div>
+        </nav>
+      </aside>
+
+      <div className="min-w-0 flex-1 space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">{t("settings.title")}</h1>
+          {saved && <span className="text-sm text-success">{saved}</span>}
+        </div>
+
+        {/* Appearance */}
+        <section id="appearance" className="scroll-mt-24">
+        <Card className="p-5">
         <h2 className="font-semibold">{t("settings.appearance")}</h2>
         <div className="divide-y">
           <Row title={t("settings.theme")}>
@@ -228,10 +305,12 @@ export default function SettingsPage() {
             />
           </Row>
         </div>
-      </Card>
+        </Card>
+        </section>
 
-      {/* Review */}
-      <Card className="p-5">
+        {/* Review */}
+        <section id="review" className="scroll-mt-24">
+        <Card className="p-5">
         <h2 className="font-semibold">{t("settings.review")}</h2>
         <div className="divide-y">
           <Row
@@ -269,10 +348,12 @@ export default function SettingsPage() {
             </button>
           </Row>
         </div>
-      </Card>
+        </Card>
+        </section>
 
-      {/* AI */}
-      <Card className="p-5">
+        {/* AI */}
+        <section id="ai" className="scroll-mt-24">
+        <Card className="p-5">
         <h2 className="font-semibold">{t("settings.ai")}</h2>
         <div className="divide-y">
           <Row title={t("settings.aiProvider")}>
@@ -328,7 +409,9 @@ export default function SettingsPage() {
             </p>
           </div>
         </div>
-      </Card>
+        </Card>
+        </section>
+      </div>
     </div>
   );
 }

@@ -2,113 +2,31 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/client";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { NativeSelect } from "@/components/ui/native-select";
+import { StatCard } from "@/components/StatCard";
 import { useI18n } from "@/lib/i18n/provider";
-import { useAuth } from "@/lib/auth-client";
 
-type AdminUser = {
-  id: string;
-  email: string;
-  name: string | null;
-  role: "admin" | "user";
-  createdAt: string;
-  _count: { decks: number };
-};
+type Stats = { users: number; admins: number; decks: number; cards: number };
 
-export default function AdminPage() {
+export default function AdminOverviewPage() {
   const { t } = useI18n();
-  const { user, loading } = useAuth();
-  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState("");
 
-  async function load() {
-    try {
-      setUsers(await api<AdminUser[]>("/api/admin/users"));
-    } catch (e) {
-      setError(String(e));
-    }
-  }
-
   useEffect(() => {
-    load();
+    api<Stats>("/api/admin/stats")
+      .then(setStats)
+      .catch((e) => setError(String(e)));
   }, []);
-
-  async function changeRole(id: string, role: "admin" | "user") {
-    try {
-      await api(`/api/admin/users/${id}`, { method: "PATCH", json: { role } });
-      load();
-    } catch (e) {
-      setError(String(e));
-    }
-  }
-
-  async function remove(id: string) {
-    if (!confirm(t("admin.confirmDelete"))) return;
-    try {
-      await api(`/api/admin/users/${id}`, { method: "DELETE" });
-      load();
-    } catch (e) {
-      setError(String(e));
-    }
-  }
-
-  if (!loading && user && user.role !== "admin") {
-    return <p className="text-muted-foreground">403 — {t("nav.admin")}</p>;
-  }
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">{t("admin.title")}</h1>
+      <h1 className="text-2xl font-bold">{t("admin.overviewTitle")}</h1>
       {error && <p className="text-sm text-danger">{error}</p>}
-
-      <div className="space-y-2">
-        {users.map((u) => {
-          const self = u.id === user?.id;
-          return (
-            <Card key={u.id} className="p-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="truncate font-medium">
-                    {u.email}
-                    {self && (
-                      <span className="ml-1 text-xs text-muted-foreground">
-                        {t("admin.you")}
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {u._count.decks} {t("admin.decks")} ·{" "}
-                    {new Date(u.createdAt).toLocaleDateString("vi-VN")}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <NativeSelect
-                    value={u.role}
-                    disabled={self}
-                    onChange={(e) =>
-                      changeRole(u.id, e.target.value as "admin" | "user")
-                    }
-                    className="w-32"
-                  >
-                    <option value="user">{t("role.user")}</option>
-                    <option value="admin">{t("role.admin")}</option>
-                  </NativeSelect>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={self}
-                    onClick={() => remove(u.id)}
-                    className="text-danger hover:text-danger"
-                  >
-                    ✕
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          );
-        })}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatCard label={t("admin.totalUsers")} value={stats?.users ?? "…"} />
+        <StatCard label={t("admin.adminCount")} value={stats?.admins ?? "…"} />
+        <StatCard label={t("admin.totalDecks")} value={stats?.decks ?? "…"} />
+        <StatCard label={t("admin.totalCards")} value={stats?.cards ?? "…"} />
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { api } from "@/lib/client";
 import type { Card as CardType, Deck, GeneratedCard } from "@/lib/types";
 import { SpeakButton } from "@/components/SpeakButton";
 import { PracticePanel } from "@/components/PracticePanel";
+import { EmptyState } from "@/components/EmptyState";
 import {
   cardsToJson,
   cardsToCsv,
@@ -386,7 +387,7 @@ export default function DeckDetail({
           {t("deck.cardsTitle", { count: deck.cards?.length ?? 0 })}
         </h2>
         {deck.cards?.length === 0 ? (
-          <p className="text-muted-foreground">{t("deck.noCards")}</p>
+          <EmptyState message={t("deck.noCards")} />
         ) : (
           deck.cards?.map((c) => (
             <Card key={c.id} className="p-4">
