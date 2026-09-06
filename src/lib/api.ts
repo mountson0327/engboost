@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
+import { AuthError, ForbiddenError } from "@/lib/auth";
 
 export function ok<T>(data: T, init?: ResponseInit) {
   return NextResponse.json(data, init);
@@ -20,6 +21,12 @@ export async function handle<T>(fn: () => Promise<T>) {
   } catch (err) {
     if (err instanceof ZodError) {
       return badRequest("Dữ liệu không hợp lệ", err.flatten());
+    }
+    if (err instanceof AuthError) {
+      return NextResponse.json({ error: err.message }, { status: 401 });
+    }
+    if (err instanceof ForbiddenError) {
+      return NextResponse.json({ error: err.message }, { status: 403 });
     }
     console.error("[api]", err);
     return NextResponse.json(

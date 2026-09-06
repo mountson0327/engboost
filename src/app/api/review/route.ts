@@ -15,7 +15,8 @@ export async function GET(request: Request) {
     const cards = await prisma.card.findMany({
       where: {
         dueDate: { lte: new Date() },
-        deck: { userId, ...(deckId ? { id: deckId } : {}) },
+        deletedAt: null,
+        deck: { userId, deletedAt: null, ...(deckId ? { id: deckId } : {}) },
       },
       orderBy: { dueDate: "asc" },
       take: Math.min(Math.max(limit, 1), 100),

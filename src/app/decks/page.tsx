@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/client";
 import type { Deck } from "@/lib/types";
@@ -8,10 +9,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n/provider";
-import { parseImport } from "@/lib/io";
+import { parseImport, templateCsv, templateJson, downloadFile } from "@/lib/io";
 
 export default function DecksPage() {
   const { t } = useI18n();
+  const router = useRouter();
   const [decks, setDecks] = useState<Deck[]>([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -90,8 +92,32 @@ export default function DecksPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">{t("decks.title")}</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {ioNote && <span className="text-xs text-success">{ioNote}</span>}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() =>
+              downloadFile("engboost-template.csv", templateCsv(), "text/csv")
+            }
+            title={t("io.templateHint")}
+          >
+            {t("io.templateCsv")}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() =>
+              downloadFile(
+                "engboost-template.json",
+                templateJson(),
+                "application/json",
+              )
+            }
+            title={t("io.templateHint")}
+          >
+            {t("io.templateJson")}
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -108,6 +134,12 @@ export default function DecksPage() {
             className="hidden"
             onChange={onImportDeck}
           />
+          <Link
+            href="/trash"
+            className="rounded-lg px-2 py-1 text-sm font-medium text-muted-foreground hover:text-foreground"
+          >
+            {t("nav.trash")}
+          </Link>
         </div>
       </div>
 
@@ -136,18 +168,26 @@ export default function DecksPage() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {decks.map((d) => (
-            <Card key={d.id} className="p-4">
+            <Card
+              key={d.id}
+              onClick={() => router.push(`/decks/${d.id}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ")
+                  router.push(`/decks/${d.id}`);
+              }}
+              className="cursor-pointer p-4 transition-all hover:-translate-y-0.5 hover:shadow-md hover:ring-primary/40 active:translate-y-0 active:scale-[0.99]"
+            >
               <div className="flex items-start justify-between">
-                <Link
-                  href={`/decks/${d.id}`}
-                  className="font-semibold hover:text-primary"
-                >
-                  {d.name}
-                </Link>
+                <span className="font-semibold">{d.name}</span>
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  onClick={() => remove(d.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    remove(d.id);
+                  }}
                   title="Xoá"
                 >
                   ✕
@@ -160,9 +200,7 @@ export default function DecksPage() {
                 <span className="text-muted-foreground">
                   {d._count?.cards ?? 0} {t("common.cards")}
                 </span>
-                <Link href={`/decks/${d.id}`} className="font-medium text-primary">
-                  {t("common.open")}
-                </Link>
+                <span className="font-medium text-primary">{t("common.open")}</span>
               </div>
             </Card>
           ))}

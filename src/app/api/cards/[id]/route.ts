@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/db";
 import { getCurrentUserId } from "@/lib/user";
+import { getEffectiveRole } from "@/lib/auth";
 import { handle, ok, notFound } from "@/lib/api";
 import { cardUpdateSchema } from "@/lib/validation/schemas";
 
 async function findOwnedCard(id: string, userId: string) {
   return prisma.card.findFirst({
-    where: { id, deck: { userId } },
+    where: { id, deletedAt: null, deck: { userId } },
   });
 }
 
@@ -44,7 +45,13 @@ export async function DELETE(
     const { id } = await ctx.params;
     const existing = await findOwnedCard(id, userId);
     if (!existing) return notFound("Không tìm thấy thẻ");
-    await prisma.card.delete({ where: { id } });
-    return ok({ deleted: true });
+
+    const role = await getEffectiveRole();
+    if (role === "admin") {
+      await prisma.card.delete({ where: { id } });
+      return ok({ deleted: true, hard: true });
+    }
+    await prisma.card.update({ where: { id }, data: { deletedAt: new Date() } });
+    return ok({ deleted: true, soft: true });
   });
 }

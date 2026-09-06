@@ -2,6 +2,7 @@
 
 import { use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { PencilIcon } from "@animateicons/react/lucide";
 import { api } from "@/lib/client";
 import type { Card as CardType, Deck, GeneratedCard } from "@/lib/types";
 import { SpeakButton } from "@/components/SpeakButton";
@@ -11,6 +12,7 @@ import {
   cardsToCsv,
   downloadFile,
   parseImport,
+  templateCsv,
 } from "@/lib/io";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,6 +53,16 @@ export default function DeckDetail({
   const [ioNote, setIoNote] = useState("");
   const [importing, setImporting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Rename deck
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const [descInput, setDescInput] = useState("");
+  const [savingName, setSavingName] = useState(false);
+  const renameIconRef = useRef<{
+    startAnimation: () => void;
+    stopAnimation: () => void;
+  }>(null);
 
   async function load() {
     try {
@@ -134,6 +146,31 @@ export default function DeckDetail({
     load();
   }
 
+  function startEditName() {
+    if (!deck) return;
+    setNameInput(deck.name);
+    setDescInput(deck.description ?? "");
+    setEditingName(true);
+  }
+
+  async function saveName(e: React.FormEvent) {
+    e.preventDefault();
+    if (!nameInput.trim()) return;
+    setSavingName(true);
+    try {
+      await api(`/api/decks/${id}`, {
+        method: "PATCH",
+        json: { name: nameInput.trim(), description: descInput.trim() || null },
+      });
+      setEditingName(false);
+      load();
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setSavingName(false);
+    }
+  }
+
   function slug(name: string) {
     return name.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase();
   }
@@ -189,17 +226,64 @@ export default function DeckDetail({
       >
         {t("deck.back")}
       </Link>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">{deck.name}</h1>
-          {deck.description && (
-            <p className="text-muted-foreground">{deck.description}</p>
-          )}
-        </div>
-        <ReviewLink
-          href={`/review?deckId=${deck.id}`}
-          label={t("deck.reviewThis")}
-        />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        {editingName ? (
+          <form onSubmit={saveName} className="flex-1 space-y-2">
+            <Input
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              placeholder={t("decks.namePlaceholder")}
+              autoFocus
+            />
+            <Input
+              value={descInput}
+              onChange={(e) => setDescInput(e.target.value)}
+              placeholder={t("decks.descPlaceholder")}
+            />
+            <div className="flex gap-2">
+              <Button
+                type="submit"
+                size="sm"
+                disabled={savingName || !nameInput.trim()}
+              >
+                {savingName ? t("deck.saving") : t("common.save")}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => setEditingName(false)}
+              >
+                {t("common.cancel")}
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <div className="flex items-center gap-1.5">
+            <div>
+              <h1 className="text-2xl font-bold">{deck.name}</h1>
+              {deck.description && (
+                <p className="text-muted-foreground">{deck.description}</p>
+              )}
+            </div>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={startEditName}
+              onMouseEnter={() => renameIconRef.current?.startAnimation()}
+              onMouseLeave={() => renameIconRef.current?.stopAnimation()}
+              title={t("deck.rename")}
+            >
+              <PencilIcon ref={renameIconRef} size={16} />
+            </Button>
+          </div>
+        )}
+        {!editingName && (
+          <ReviewLink
+            href={`/review?deckId=${deck.id}`}
+            label={t("deck.reviewThis")}
+          />
+        )}
       </div>
 
       {/* Import / Export */}
@@ -210,6 +294,16 @@ export default function DeckDetail({
           </Button>
           <Button variant="outline" size="sm" onClick={exportCsv}>
             {t("io.exportCsv")}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() =>
+              downloadFile("engboost-template.csv", templateCsv(), "text/csv")
+            }
+            title={t("io.templateHint")}
+          >
+            {t("io.templateCsv")}
           </Button>
           <Button
             variant="outline"

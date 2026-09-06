@@ -72,6 +72,53 @@ export function cardsToCsv(cards: ExportCard[]): string {
   return [CSV_HEADERS.join(","), ...rows].join("\n");
 }
 
+// ---- Templates ------------------------------------------------------------
+
+// Sample rows so the downloaded template shows the exact expected format.
+const TEMPLATE_CARDS: ImportCard[] = [
+  {
+    term: "example",
+    ipa: "/ɪɡˈzɑːmpl/",
+    pos: "noun",
+    meaningEn: "a thing that shows a general rule",
+    meaningVi: "ví dụ",
+    examples: ["This is an example.", "Give me another example."],
+  },
+  {
+    term: "practice",
+    ipa: "/ˈpræktɪs/",
+    pos: "verb",
+    meaningEn: "to do something repeatedly to improve",
+    meaningVi: "luyện tập",
+    examples: ["I practice English every day."],
+  },
+];
+
+/** CSV template (header + example rows) — opens like a form in Excel/Sheets. */
+export function templateCsv(): string {
+  return cardsToCsv(TEMPLATE_CARDS);
+}
+
+/** JSON template wrapped as a deck ({name, description, cards}). */
+export function templateJson(): string {
+  return JSON.stringify(
+    {
+      name: "Tên bộ từ của bạn",
+      description: "Mô tả (tuỳ chọn)",
+      cards: TEMPLATE_CARDS.map((c) => ({
+        term: c.term,
+        ipa: c.ipa ?? "",
+        pos: c.pos ?? "",
+        meaningEn: c.meaningEn ?? "",
+        meaningVi: c.meaningVi ?? "",
+        examples: c.examples ?? [],
+      })),
+    },
+    null,
+    2,
+  );
+}
+
 /** Trigger a client-side file download. */
 export function downloadFile(filename: string, content: string, mime: string) {
   const blob = new Blob([content], { type: `${mime};charset=utf-8` });
@@ -156,6 +203,8 @@ export type ParsedImport = {
  * JSON accepts either an array of cards or `{ name, description, cards }`.
  */
 export function parseImport(text: string, filename: string): ParsedImport {
+  // Strip a leading UTF-8 BOM (Excel adds one) so the first column parses.
+  if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
   const isJson =
     filename.toLowerCase().endsWith(".json") || text.trim().startsWith("[") ||
     text.trim().startsWith("{");

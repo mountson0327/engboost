@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { cardsToCsv, cardsToJson, parseImport, type ImportCard } from "./io";
+import {
+  cardsToCsv,
+  cardsToJson,
+  parseImport,
+  templateCsv,
+  templateJson,
+  type ImportCard,
+} from "./io";
 
 const cards: ImportCard[] = [
   {
@@ -49,6 +56,24 @@ describe("io round-trip", () => {
     const parsed = parseImport(json, "x.json");
     expect(parsed.name).toBe("My Deck");
     expect(parsed.cards).toHaveLength(1);
+  });
+
+  it("downloadable templates parse back into valid cards", () => {
+    const fromCsv = parseImport(templateCsv(), "engboost-template.csv");
+    expect(fromCsv.cards.length).toBeGreaterThanOrEqual(2);
+    expect(fromCsv.cards[0].term).toBe("example");
+    expect(fromCsv.cards[0].examples?.length).toBeGreaterThan(0);
+
+    const fromJson = parseImport(templateJson(), "engboost-template.json");
+    expect(fromJson.name).toBeTruthy();
+    expect(fromJson.cards[0].term).toBe("example");
+  });
+
+  it("strips a leading UTF-8 BOM (Excel exports)", () => {
+    const csv = "﻿" + templateCsv();
+    const { cards } = parseImport(csv, "excel.csv");
+    expect(cards.length).toBeGreaterThanOrEqual(2);
+    expect(cards[0].term).toBe("example");
   });
 
   it("skips rows without a term", () => {

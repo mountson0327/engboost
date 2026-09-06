@@ -1,5 +1,16 @@
 import { z } from "zod";
 
+export const registerSchema = z.object({
+  email: z.string().email("Email không hợp lệ").max(200),
+  password: z.string().min(6, "Mật khẩu tối thiểu 6 ký tự").max(200),
+  name: z.string().max(100).optional(),
+});
+
+export const loginSchema = z.object({
+  email: z.string().email().max(200),
+  password: z.string().min(1).max(200),
+});
+
 export const deckCreateSchema = z.object({
   name: z.string().min(1, "Tên bộ từ không được trống").max(100),
   description: z.string().max(500).optional().nullable(),
@@ -66,9 +77,20 @@ export const lookupSchema = z.object({
   word: z.string().min(1).max(100),
 });
 
+export const aiSettingsSchema = z.object({
+  provider: z.enum(["anthropic", "openai", "gemini"]).optional(),
+  model: z.string().max(100).optional(),
+  apiKey: z.string().max(1000).optional(),
+});
+
 export const practiceSchema = z.object({
   cardId: z.string().min(1),
   sentence: z.string().min(1).max(1000),
+});
+
+export const writingSchema = z.object({
+  topic: z.string().min(1).max(200),
+  text: z.string().min(1).max(5000),
 });
 
 // Import / export

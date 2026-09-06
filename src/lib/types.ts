@@ -13,6 +13,19 @@ export type SentencePractice = {
   source?: "claude" | "fallback";
 };
 
+export type ParagraphWriting = {
+  id: string;
+  topic: string;
+  text: string;
+  corrected: string | null;
+  feedback: string | null;
+  improvements: string | null;
+  score: number | null;
+  cefr: string | null;
+  createdAt: string;
+  source?: "ai" | "fallback";
+};
+
 export type Card = {
   id: string;
   deckId: string;

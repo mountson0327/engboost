@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { getCurrentUserId } from "@/lib/user";
-import { hasClaude } from "@/lib/ai/claude";
+import { hasActiveAiKey } from "@/lib/ai/claude";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -28,12 +28,24 @@ async function loadStats(): Promise<Stats> {
     const userId = await getCurrentUserId();
     const [decks, totalCards, dueToday, mastered, recentQuiz] =
       await Promise.all([
-        prisma.deck.count({ where: { userId } }),
-        prisma.card.count({ where: { deck: { userId } } }),
+        prisma.deck.count({ where: { userId, deletedAt: null } }),
         prisma.card.count({
-          where: { deck: { userId }, dueDate: { lte: new Date() } },
+          where: { deletedAt: null, deck: { userId, deletedAt: null } },
         }),
-        prisma.card.count({ where: { deck: { userId }, state: "mastered" } }),
+        prisma.card.count({
+          where: {
+            deletedAt: null,
+            deck: { userId, deletedAt: null },
+            dueDate: { lte: new Date() },
+          },
+        }),
+        prisma.card.count({
+          where: {
+            deletedAt: null,
+            deck: { userId, deletedAt: null },
+            state: "mastered",
+          },
+        }),
         prisma.quizAttempt.findMany({
           where: { userId },
           orderBy: { createdAt: "desc" },
@@ -59,6 +71,7 @@ export default async function Dashboard() {
   const stats = await loadStats();
   const t = await getT();
   const lang = await getLang();
+  const aiOn = await hasActiveAiKey();
   const dateLocale = lang === "vi" ? "vi-VN" : "en-US";
 
   return (
@@ -85,7 +98,7 @@ export default async function Dashboard() {
             {stats.ok ? t("dash.dbOk") : t("dash.dbError")}
           </Badge>
           <Badge variant="secondary">
-            {hasClaude() ? t("dash.claudeOn") : t("dash.aiFallback")}
+            {aiOn ? t("dash.claudeOn") : t("dash.aiFallback")}
           </Badge>
         </div>
       </div>

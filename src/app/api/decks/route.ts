@@ -7,9 +7,9 @@ export async function GET() {
   return handle(async () => {
     const userId = await getCurrentUserId();
     const decks = await prisma.deck.findMany({
-      where: { userId },
+      where: { userId, deletedAt: null },
       orderBy: { createdAt: "desc" },
-      include: { _count: { select: { cards: true } } },
+      include: { _count: { select: { cards: { where: { deletedAt: null } } } } },
     });
     return ok(decks);
   });

@@ -12,16 +12,56 @@ datasource db {
 
 // v1 is single-user, but every owned row carries userId so multi-user is a
 // straight extension later (just add auth + real user ids).
+enum Role {
+  admin
+  user
+}
+
 model User {
   id                String             @id @default(cuid())
   email             String             @unique
   name              String?
+  passwordHash      String?
+  role              Role               @default(user)
   createdAt         DateTime           @default(now())
   decks             Deck[]
   quizAttempts      QuizAttempt[]
   readingTexts      ReadingText[]
   chatMessages      ChatMessage[]
   sentencePractices SentencePractice[]
+  paragraphs        ParagraphWriting[]
+  aiSetting         AiSetting?
+}
+
+// A user-written paragraph on a topic, plus the AI's review of it.
+model ParagraphWriting {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic        String
+  text         String
+  corrected    String?
+  feedback     String? // overall feedback (Vietnamese)
+  improvements String? // vocabulary/coherence suggestions (Vietnamese)
+  score        Int? // 0-10
+  cefr         String?
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+}
+
+// User-configurable AI provider + API keys (single row per user).
+// Keys are stored server-side and never returned in full to the client.
+model AiSetting {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider     String   @default("anthropic") // anthropic | openai | gemini
+  model        String? // active model id (provider-specific)
+  anthropicKey String?
+  openaiKey    String?
+  geminiKey    String?
+  updatedAt    DateTime @updatedAt
 }
 
 model Deck {
@@ -31,6 +71,7 @@ model Deck {
   name        String
   description String?
   createdAt   DateTime @default(now())
+  deletedAt   DateTime? // soft delete
   cards       Card[]
 
   @@index([userId])
@@ -66,6 +107,7 @@ model Card {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime? // soft delete
 
   practices SentencePractice[]
 

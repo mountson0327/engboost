@@ -31,8 +31,8 @@ export async function POST(request: Request) {
     );
 
     const deck = await prisma.deck.findFirst({
-      where: { id: deckId, userId },
-      include: { cards: true },
+      where: { id: deckId, userId, deletedAt: null },
+      include: { cards: { where: { deletedAt: null } } },
     });
     if (!deck) return badRequest("Bộ từ không tồn tại");
 

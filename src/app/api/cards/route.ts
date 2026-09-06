@@ -10,7 +10,7 @@ export async function POST(request: Request) {
 
     // Make sure the deck belongs to this user before adding to it.
     const deck = await prisma.deck.findFirst({
-      where: { id: body.deckId, userId },
+      where: { id: body.deckId, userId, deletedAt: null },
     });
     if (!deck) return badRequest("Bộ từ không tồn tại");
 

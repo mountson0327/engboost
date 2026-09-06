@@ -7,7 +7,7 @@ mọi dữ liệu gắn `userId` để mở rộng multi-user sau này.
 ## Tech stack
 
 - **Next.js 16** (App Router, Route Handlers) + **React 19** + **Tailwind 4**
-- Font **Inter** (kèm subset `vietnamese`)
+- Font **Inter** (kèm subset `vietnamese`); **Dark mode** (Sáng/Tối/Theo hệ thống) qua cookie + class `.dark`
 - **shadcn/ui** (style base-nova, trên Base UI) + **@animateicons/react** (icon động)
 - **Đa ngôn ngữ VI/EN** (mặc định VI) — i18n gọn nhẹ bằng cookie + context
   ([src/lib/i18n](src/lib/i18n)); đổi ngôn ngữ ở góc phải thanh điều hướng
@@ -50,6 +50,9 @@ ANTHROPIC_API_KEY="sk-ant-..."
 
 | Trang | Chức năng |
 |---|---|
+| `/login`, `/register` | Đăng nhập / đăng ký (tài khoản đầu tiên = admin) |
+| `/admin` | (admin) Quản lý user: đổi role, xoá user |
+| `/trash` | Thùng rác: khôi phục bộ từ đã xoá mềm; admin xoá vĩnh viễn |
 | `/` | Dashboard: thẻ due hôm nay, tổng thẻ, đã thuộc, quiz gần đây |
 | `/decks` | Tạo/xoá bộ từ; **nhập bộ từ** từ file; thêm thẻ, nút **✨ AI điền** |
 | `/decks/[id]` | Chi tiết bộ từ; **Xuất JSON/CSV**, **Nhập file** (.json/.csv); **✍️ Đặt câu** dùng từ → AI chấm ngữ pháp/cách dùng/độ tự nhiên + điểm & CEFR (lưu vào thẻ) |
@@ -57,6 +60,8 @@ ANTHROPIC_API_KEY="sk-ant-..."
 | `/quiz` | Sinh quiz trắc nghiệm từ bộ từ (ưu tiên từ hay sai), chấm điểm |
 | `/read` | Sinh/dán bài đọc, **click từ để tra + 🔊 + thêm vào bộ từ** |
 | `/chat` | Hội thoại luyện tập + kiểm tra ngữ pháp |
+| `/write` | Viết đoạn văn theo chủ đề → AI chấm (bản sửa, nhận xét, gợi ý, điểm + CEFR), lưu lịch sử |
+| `/settings` | Giao diện (Sáng/Tối/Theo hệ thống), ngôn ngữ, số thẻ/phiên ôn, tự động phát âm, **chọn nhà cung cấp AI (Anthropic/OpenAI/Gemini) + model + nhập API key** |
 
 ## Scripts
 

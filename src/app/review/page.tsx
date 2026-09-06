@@ -3,13 +3,15 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { api } from "@/lib/client";
-import type { Card as CardType } from "@/lib/types";
+import { api, speak } from "@/lib/client";
+import type { Card as CardType, Deck } from "@/lib/types";
 import { Card } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { SpeakButton } from "@/components/SpeakButton";
+import { NativeSelect } from "@/components/ui/native-select";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/provider";
+import { getReviewLimit, getAutoSpeak } from "@/lib/prefs";
 
 type GradeKey = "again" | "hard" | "good" | "easy";
 
@@ -23,7 +25,11 @@ const GRADES: { key: GradeKey; label: string; cls: string }[] = [
 function ReviewInner() {
   const { t } = useI18n();
   const searchParams = useSearchParams();
-  const deckId = searchParams.get("deckId") ?? undefined;
+
+  const [decks, setDecks] = useState<Deck[]>([]);
+  const [selectedDeckId, setSelectedDeckId] = useState<string>(
+    searchParams.get("deckId") ?? "",
+  );
 
   const [queue, setQueue] = useState<CardType[]>([]);
   const [idx, setIdx] = useState(0);
@@ -32,10 +38,18 @@ function ReviewInner() {
   const [done, setDone] = useState(0);
   const [error, setError] = useState("");
 
+  // Load the deck list for the picker (once).
+  useEffect(() => {
+    api<Deck[]>("/api/decks").then(setDecks).catch(() => {});
+  }, []);
+
   async function load() {
     setLoading(true);
     try {
-      const qs = deckId ? `?deckId=${deckId}&limit=50` : "?limit=50";
+      const limit = getReviewLimit();
+      const qs = selectedDeckId
+        ? `?deckId=${selectedDeckId}&limit=${limit}`
+        : `?limit=${limit}`;
       const cards = await api<CardType[]>(`/api/review${qs}`);
       setQueue(cards);
       setIdx(0);
@@ -50,9 +64,27 @@ function ReviewInner() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deckId]);
+  }, [selectedDeckId]);
+
+  function onChangeDeck(id: string) {
+    setSelectedDeckId(id);
+    setDone(0);
+    // Keep the URL in sync so a refresh remembers the choice.
+    if (typeof window !== "undefined") {
+      window.history.replaceState(
+        null,
+        "",
+        id ? `/review?deckId=${id}` : "/review",
+      );
+    }
+  }
 
   const current = queue[idx];
+
+  // Auto-pronounce the term when a new card appears (if enabled in settings).
+  useEffect(() => {
+    if (current && getAutoSpeak()) speak(current.term);
+  }, [current?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function grade(g: GradeKey) {
     if (!current) return;
@@ -69,17 +101,35 @@ function ReviewInner() {
     }
   }
 
-  if (loading) return <p className="text-muted-foreground">{t("common.loading")}</p>;
-  if (error) return <p className="text-danger">{error}</p>;
+  const picker = (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-sm text-muted-foreground">{t("review.pickDeck")}</span>
+      <NativeSelect
+        value={selectedDeckId}
+        onChange={(e) => onChangeDeck(e.target.value)}
+        className="max-w-xs"
+      >
+        <option value="">{t("review.allDecks")}</option>
+        {decks.map((d) => (
+          <option key={d.id} value={d.id}>
+            {d.name} ({d._count?.cards ?? 0})
+          </option>
+        ))}
+      </NativeSelect>
+    </div>
+  );
 
-  if (!current) {
-    return (
-      <Card className="mx-auto max-w-md p-8 text-center">
+  let content: React.ReactNode;
+  if (loading) {
+    content = <p className="text-muted-foreground">{t("common.loading")}</p>;
+  } else if (error) {
+    content = <p className="text-danger">{error}</p>;
+  } else if (!current) {
+    content = (
+      <Card className="p-8 text-center">
         <div className="text-5xl">🎉</div>
         <h1 className="text-xl font-bold">{t("review.doneTitle")}</h1>
-        <p className="text-muted-foreground">
-          {t("review.doneBody", { done })}
-        </p>
+        <p className="text-muted-foreground">{t("review.doneBody", { done })}</p>
         <div className="flex justify-center gap-2">
           <Link href="/" className={cn(buttonVariants({ variant: "outline" }), "h-9 px-4")}>
             {t("review.home")}
@@ -90,19 +140,18 @@ function ReviewInner() {
         </div>
       </Card>
     );
-  }
+  } else {
+    content = (
+      <>
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>{t("review.remaining", { left: queue.length - idx, done })}</span>
+          {current.deck && <span>{current.deck.name}</span>}
+        </div>
 
-  return (
-    <div className="mx-auto max-w-lg space-y-4">
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>{t("review.remaining", { left: queue.length - idx, done })}</span>
-        {current.deck && <span>{current.deck.name}</span>}
-      </div>
-
-      <Card
-        className="min-h-64 cursor-pointer justify-center p-8 text-center"
-        onClick={() => setShowBack((s) => !s)}
-      >
+        <Card
+          className="min-h-64 cursor-pointer justify-center p-8 text-center"
+          onClick={() => setShowBack((s) => !s)}
+        >
         <div className="flex items-center justify-center gap-2">
           <span className="text-3xl font-bold">{current.term}</span>
           <SpeakButton
@@ -152,11 +201,19 @@ function ReviewInner() {
             </Button>
           ))}
         </div>
-      ) : (
-        <Button onClick={() => setShowBack(true)} className="h-10 w-full">
-          {t("review.showAnswer")}
-        </Button>
-      )}
+        ) : (
+          <Button onClick={() => setShowBack(true)} className="h-10 w-full">
+            {t("review.showAnswer")}
+          </Button>
+        )}
+      </>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-lg space-y-4">
+      {picker}
+      {content}
     </div>
   );
 }
