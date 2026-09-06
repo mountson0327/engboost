@@ -12,6 +12,7 @@ import {
   THEMES,
   applyTheme,
   readTheme,
+  resolveDark,
   type Theme,
 } from "@/lib/theme";
 import {
@@ -120,20 +121,19 @@ export default function SettingsPage() {
 
   // Load client-side values after mount (avoids hydration mismatch).
   useEffect(() => {
-    setThemeState(readTheme());
+    const th = readTheme();
+    // "system" is no longer offered — migrate old cookies to a concrete choice.
+    if (th === "system") {
+      const resolved = resolveDark("system") ? "dark" : "light";
+      applyTheme(resolved);
+      setThemeState(resolved);
+    } else {
+      setThemeState(th);
+    }
     setReviewLimitState(getReviewLimit());
     setAutoSpeakState(getAutoSpeak());
     loadAi();
   }, []);
-
-  // Keep "system" theme in sync when the OS scheme changes.
-  useEffect(() => {
-    if (theme !== "system" || typeof window === "undefined") return;
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => applyTheme("system");
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, [theme]);
 
   function flashSaved() {
     setSaved(t("settings.saved"));
