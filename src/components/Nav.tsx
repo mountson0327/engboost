@@ -17,7 +17,7 @@ import {
   EyeIcon,
   LogOutIcon,
 } from "@animateicons/react/lucide";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/provider";
 import { useAuth } from "@/lib/auth-client";
@@ -43,16 +43,19 @@ function NavItem({
   label,
   Icon,
   active,
+  onClick,
 }: {
   href: string;
   label: string;
   Icon: AnimatedIcon;
   active: boolean;
+  onClick?: () => void;
 }) {
   const ref = useRef<IconHandle>(null);
   return (
     <Link
       href={href}
+      onClick={onClick}
       onMouseEnter={() => ref.current?.startAnimation()}
       onMouseLeave={() => ref.current?.stopAnimation()}
       className={cn(
@@ -245,6 +248,12 @@ export default function Nav() {
   const logoRef = useRef<IconHandle>(null);
   const { t } = useI18n();
   const { user } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Close the mobile menu whenever the route changes.
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   return (
     <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
@@ -258,8 +267,10 @@ export default function Nav() {
           <SparklesIcon ref={logoRef} size={22} />
           <span>EngBoost</span>
         </Link>
+
+        {/* Desktop nav links */}
         {user && (
-          <div className="flex flex-wrap gap-1">
+          <div className="hidden gap-1 md:flex">
             {LINKS.map((l) => (
               <NavItem
                 key={l.href}
@@ -271,11 +282,40 @@ export default function Nav() {
             ))}
           </div>
         )}
-        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+
+        <div className="ml-auto flex items-center gap-2">
           <LanguageToggle />
           <UserMenu />
+          {user && (
+            <button
+              type="button"
+              aria-label="Menu"
+              onClick={() => setMobileOpen((o) => !o)}
+              className="flex items-center rounded-lg border p-1.5 text-muted-foreground transition-colors hover:text-foreground md:hidden"
+            >
+              {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+          )}
         </div>
       </nav>
+
+      {/* Mobile nav links (collapsible) */}
+      {user && mobileOpen && (
+        <div className="border-t px-4 py-2 md:hidden">
+          <div className="flex flex-col gap-1">
+            {LINKS.map((l) => (
+              <NavItem
+                key={l.href}
+                href={l.href}
+                label={t(l.labelKey)}
+                Icon={l.Icon}
+                active={pathname.startsWith(l.href)}
+                onClick={() => setMobileOpen(false)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </header>
   );
 }
