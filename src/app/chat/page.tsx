@@ -105,7 +105,7 @@ export default function ChatPage() {
           </Button>
           {source && (
             <Badge variant="secondary" className="ml-auto">
-              {source === "claude" ? "Claude ✨" : t("chat.fallback")}
+              {source === "ai" ? "AI ✨" : t("chat.fallback")}
             </Badge>
           )}
         </div>

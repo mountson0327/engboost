@@ -30,7 +30,7 @@ const AI_PROVIDERS: AiProvider[] = ["anthropic", "openai", "gemini"];
 const MODEL_SUGGEST: Record<AiProvider, string> = {
   anthropic: "claude-opus-5, claude-sonnet-5, claude-haiku-4-5",
   openai: "gpt-4o, gpt-4o-mini, gpt-4.1-mini",
-  gemini: "gemini-2.0-flash, gemini-1.5-pro",
+  gemini: "gemini-2.5-flash-lite, gemini-3.1-flash-lite, gemini-3.5-flash",
 };
 
 const SECTIONS: { id: string; labelKey: TKey }[] = [

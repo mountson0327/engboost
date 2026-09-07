@@ -14,6 +14,7 @@ async function complete(
   system: string,
   messages: ChatMsg[],
   maxTokens = 1024,
+  jsonMode = false,
 ): Promise<string> {
   if (cfg.provider === "anthropic") {
     const client = new Anthropic({ apiKey: cfg.apiKey });
@@ -66,7 +67,10 @@ async function complete(
       ...(system
         ? { systemInstruction: { parts: [{ text: system }] } }
         : {}),
-      generationConfig: { maxOutputTokens: maxTokens },
+      generationConfig: {
+        maxOutputTokens: maxTokens,
+        ...(jsonMode ? { responseMimeType: "application/json" } : {}),
+      },
     }),
   });
   if (!res.ok) throw new Error(`Gemini ${res.status}: ${await res.text()}`);
@@ -83,8 +87,15 @@ async function completeText(
   system: string,
   user: string,
   maxTokens = 1024,
+  jsonMode = false,
 ): Promise<string> {
-  return complete(cfg, system, [{ role: "user", content: user }], maxTokens);
+  return complete(
+    cfg,
+    system,
+    [{ role: "user", content: user }],
+    maxTokens,
+    jsonMode,
+  );
 }
 
 /** Ask the model for JSON and parse it defensively (handles ```json fences). */
@@ -99,6 +110,7 @@ async function completeJson<T>(
     system + "\nRespond with ONLY valid JSON, no prose, no code fences.",
     user,
     maxTokens,
+    true,
   );
   const cleaned = raw
     .replace(/^```(?:json)?/i, "")
@@ -117,6 +129,8 @@ export type GeneratedCard = {
   meaningVi: string;
   examples: string[];
   source: AiSource;
+  /** Safe, user-facing details when a configured provider fails. */
+  error?: string;
 };
 
 export async function generateCard(term: string): Promise<GeneratedCard> {
@@ -141,9 +155,26 @@ export async function generateCard(term: string): Promise<GeneratedCard> {
       examples: Array.isArray(data.examples) ? data.examples.slice(0, 3) : [],
       source: "ai",
     };
-  } catch {
-    return fallbackCard(clean);
+  } catch (error) {
+    const detail = describeAiError(error);
+    console.error("[ai] generateCard failed", {
+      provider: cfg.provider,
+      model: cfg.model,
+      detail,
+    });
+    return { ...fallbackCard(clean), error: detail };
   }
+}
+
+function describeAiError(error: unknown): string {
+  const raw = error instanceof Error ? error.message : String(error);
+  return raw
+    .replace(/key=[^&\s]+/gi, "key=[redacted]")
+    .replace(/AIza[0-9A-Za-z_-]+/g, "AIza…[redacted]")
+    .replace(/(?:sk-ant-|sk-)[0-9A-Za-z_-]+/g, "[redacted]")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 320);
 }
 
 function fallbackCard(term: string): GeneratedCard {

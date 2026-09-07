@@ -8,7 +8,7 @@ export const PROVIDERS: Provider[] = ["anthropic", "openai", "gemini"];
 export const DEFAULT_MODELS: Record<Provider, string> = {
   anthropic: "claude-sonnet-5",
   openai: "gpt-4o-mini",
-  gemini: "gemini-2.0-flash",
+  gemini: "gemini-2.5-flash-lite",
 };
 
 export function isProvider(v: unknown): v is Provider {

@@ -103,7 +103,11 @@ export default function DeckDetail({
       setMeaningVi(g.meaningVi);
       setExamples(g.examples.join("\n"));
       setAiNote(
-        g.source === "claude" ? t("deck.aiNoteClaude") : t("deck.aiNoteFallback"),
+        g.source === "ai"
+          ? t("deck.aiNoteAi")
+          : g.error
+            ? t("deck.aiNoteError", { detail: g.error })
+            : t("deck.aiNoteFallback"),
       );
     } catch (e) {
       setError(String(e));

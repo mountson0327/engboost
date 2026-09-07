@@ -10,7 +10,7 @@ export type SentencePractice = {
   score: number | null;
   cefr: string | null;
   createdAt: string;
-  source?: "claude" | "fallback";
+  source?: "ai" | "fallback";
 };
 
 export type ParagraphWriting = {
@@ -61,5 +61,6 @@ export type GeneratedCard = {
   meaningEn: string;
   meaningVi: string;
   examples: string[];
-  source: "claude" | "fallback";
+  source: "ai" | "fallback";
+  error?: string;
 };
