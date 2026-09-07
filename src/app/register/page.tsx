@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/PasswordInput";
 import { useI18n } from "@/lib/i18n/provider";
 import { useAuth } from "@/lib/auth-client";
 
@@ -70,12 +71,13 @@ export default function RegisterPage() {
           </div>
           <div>
             <Label className="mb-1">{t("auth.password")}</Label>
-            <Input
-              type="password"
+            <PasswordInput
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"
               required
+              showLabel={t("auth.showPassword")}
+              hideLabel={t("auth.hidePassword")}
             />
           </div>
           {error && <p className="text-sm text-danger">{error}</p>}

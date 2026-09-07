@@ -1,5 +1,7 @@
 export type Theme = "light" | "dark" | "system";
 export const THEME_COOKIE = "theme";
+// Light mode is the default: a white canvas with Van Gogh pigment gradients.
+// Dark mode remains available as the Starry Night variant.
 export const DEFAULT_THEME: Theme = "light";
 // "system" is still supported for old cookies, but no longer offered as a choice.
 export const THEMES: Theme[] = ["light", "dark"];

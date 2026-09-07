@@ -75,32 +75,37 @@ export default async function Dashboard() {
   const dateLocale = lang === "vi" ? "vi-VN" : "en-US";
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">{t("dash.welcome")}</h1>
-          <p className="text-muted-foreground">{t("dash.subtitle")}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge
-            className={
-              stats.ok
-                ? "bg-success/15 text-success"
-                : "bg-danger/15 text-danger"
-            }
-          >
-            <span
-              className={cn(
-                "size-2 rounded-full",
-                stats.ok ? "bg-success" : "bg-danger",
-              )}
-            />
-            {stats.ok ? t("dash.dbOk") : t("dash.dbError")}
-          </Badge>
-          <Badge variant="secondary">
-            {aiOn ? t("dash.claudeOn") : t("dash.aiFallback")}
-          </Badge>
-        </div>
+    <div className="space-y-7">
+      <div className="hero-panel relative overflow-hidden rounded-3xl border p-6 sm:p-8">
+        <div className="pointer-events-none absolute -right-16 -top-20 size-64 rounded-full bg-[#37cae5]/10 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 right-20 size-24 rounded-full bg-[#f5db37]/10 blur-2xl" />
+        <div className="relative flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-[#37cae5]">Your learning constellation</p>
+            <h1 className="text-3xl font-bold tracking-tight text-[#fbefcb] sm:text-4xl">{t("dash.welcome")}</h1>
+            <p className="mt-2 max-w-xl text-[#b4c2df]">{t("dash.subtitle")}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge
+              className={
+                stats.ok
+                  ? "bg-success/15 text-success"
+                  : "bg-danger/15 text-danger"
+              }
+            >
+              <span
+                className={cn(
+                  "size-2 rounded-full",
+                  stats.ok ? "bg-success" : "bg-danger",
+                )}
+              />
+              {stats.ok ? t("dash.dbOk") : t("dash.dbError")}
+            </Badge>
+            <Badge variant="secondary">
+              {aiOn ? t("dash.claudeOn") : t("dash.aiFallback")}
+            </Badge>
+          </div>
+      </div>
       </div>
 
       {!stats.ok && (

@@ -11,15 +11,41 @@ import { SpeakButton } from "@/components/SpeakButton";
 import { NativeSelect } from "@/components/ui/native-select";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/provider";
+import type { TKey } from "@/lib/i18n/dictionaries";
 import { getReviewLimit, getAutoSpeak } from "@/lib/prefs";
 
 type GradeKey = "again" | "hard" | "good" | "easy";
 
-const GRADES: { key: GradeKey; label: string; cls: string }[] = [
-  { key: "again", label: "Again", cls: "bg-danger text-white hover:bg-danger/90" },
-  { key: "hard", label: "Hard", cls: "bg-warning text-white hover:bg-warning/90" },
-  { key: "good", label: "Good", cls: "bg-success text-white hover:bg-success/90" },
-  { key: "easy", label: "Easy", cls: "" }, // default primary
+const GRADES: {
+  key: GradeKey;
+  labelKey: TKey;
+  hintKey: TKey;
+  cls: string;
+}[] = [
+  {
+    key: "again",
+    labelKey: "review.grade.again",
+    hintKey: "review.grade.againHint",
+    cls: "border-danger/55 !bg-white text-danger hover:!bg-danger/5 dark:!bg-card",
+  },
+  {
+    key: "hard",
+    labelKey: "review.grade.hard",
+    hintKey: "review.grade.hardHint",
+    cls: "border-[#a3945d]/70 !bg-white text-[#786d3f] hover:!bg-[#a3945d]/8 dark:!bg-card dark:text-[#dad69f]",
+  },
+  {
+    key: "good",
+    labelKey: "review.grade.good",
+    hintKey: "review.grade.goodHint",
+    cls: "border-success/55 !bg-white text-[#288f54] hover:!bg-success/5 dark:!bg-card dark:text-success",
+  },
+  {
+    key: "easy",
+    labelKey: "review.grade.easy",
+    hintKey: "review.grade.easyHint",
+    cls: "border-primary/55 !bg-white text-primary hover:!bg-primary/5 dark:!bg-card",
+  },
 ];
 
 function ReviewInner() {
@@ -220,16 +246,25 @@ function ReviewInner() {
       </Card>
 
       {showBack ? (
-        <div className="grid grid-cols-4 gap-2">
-          {GRADES.map((g) => (
-            <Button
-              key={g.key}
-              onClick={() => grade(g.key)}
-              className={cn("h-10", g.cls)}
-            >
-              {g.label}
-            </Button>
-          ))}
+        <div className="space-y-2">
+          <p className="text-center text-sm font-medium text-muted-foreground">
+            {t("review.gradePrompt")}
+          </p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {GRADES.map((g) => (
+              <Button
+                key={g.key}
+                variant="outline"
+                onClick={() => grade(g.key)}
+                className={cn("h-auto min-h-14 flex-col gap-0.5 px-2 py-2", g.cls)}
+              >
+                <span className="font-semibold">{t(g.labelKey)}</span>
+                <span className="text-[11px] font-normal opacity-70">
+                  {t(g.hintKey)}
+                </span>
+              </Button>
+            ))}
+          </div>
         </div>
         ) : (
           <Button onClick={() => setShowBack(true)} className="h-10 w-full">

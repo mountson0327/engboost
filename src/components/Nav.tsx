@@ -59,10 +59,10 @@ function NavItem({
       onMouseEnter={() => ref.current?.startAnimation()}
       onMouseLeave={() => ref.current?.stopAnimation()}
       className={cn(
-        "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+        "nav-link group/navitem relative flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-all",
         active
-          ? "bg-primary text-primary-foreground"
-          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+          ? "nav-link-active text-foreground"
+          : "text-muted-foreground hover:text-primary",
       )}
     >
       <Icon ref={ref} size={18} />
@@ -75,7 +75,7 @@ function LanguageToggle() {
   const { lang, setLang, t } = useI18n();
   return (
     <div
-      className="flex items-center rounded-lg border p-0.5"
+      className="flex items-center rounded-xl border border-white/10 bg-black/10 p-0.5"
       title={t("nav.language")}
     >
       {LANGS.map((l: Lang) => (
@@ -85,7 +85,7 @@ function LanguageToggle() {
           className={cn(
             "rounded-md px-2 py-1 text-xs font-semibold uppercase transition-colors",
             lang === l
-              ? "bg-primary text-primary-foreground"
+              ? "bg-[#f5db37] text-[#151e2f] shadow-[0_0_12px_rgba(245,219,55,0.25)]"
               : "text-muted-foreground hover:text-foreground",
           )}
         >
@@ -115,7 +115,7 @@ function MenuItem({
     "flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm transition-colors",
     danger
       ? "text-muted-foreground hover:bg-danger/10 hover:text-danger"
-      : "text-muted-foreground hover:bg-accent hover:text-foreground",
+      : "text-muted-foreground hover:bg-primary/10 hover:text-primary",
   );
   const handlers = {
     onMouseEnter: () => ref.current?.startAnimation(),
@@ -176,8 +176,8 @@ function UserMenu() {
         className={cn(
           "flex items-center gap-1.5 rounded-lg border px-2 py-1 text-sm font-medium transition-colors",
           open
-            ? "bg-accent text-foreground"
-            : "text-muted-foreground hover:bg-accent hover:text-foreground",
+            ? "border-primary/30 bg-primary/10 text-primary"
+            : "text-muted-foreground hover:bg-primary/10 hover:text-primary",
         )}
       >
         <UserIcon ref={userIconRef} size={16} />
@@ -256,15 +256,17 @@ export default function Nav() {
   }, [pathname]);
 
   return (
-    <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
-      <nav className="flex items-center gap-2 px-4 py-3 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-10 border-b border-border/60 bg-background/80 backdrop-blur-xl">
+      <nav className="mx-auto flex w-full max-w-7xl items-center gap-2 px-4 py-3 sm:px-6 lg:px-8">
         <Link
           href="/"
           onMouseEnter={() => logoRef.current?.startAnimation()}
           onMouseLeave={() => logoRef.current?.stopAnimation()}
-          className="mr-3 flex items-center gap-2 text-lg font-bold"
+          className="mr-2 flex items-center gap-2 text-lg font-bold tracking-tight text-foreground sm:mr-5"
         >
-          <SparklesIcon ref={logoRef} size={22} />
+          <span className="grid size-9 place-items-center rounded-xl bg-[#f5db37] text-[#151e2f] shadow-[0_0_22px_rgba(245,219,55,0.35)]">
+            <SparklesIcon ref={logoRef} size={20} />
+          </span>
           <span>EngBoost</span>
         </Link>
 
@@ -291,7 +293,7 @@ export default function Nav() {
               type="button"
               aria-label="Menu"
               onClick={() => setMobileOpen((o) => !o)}
-              className="flex items-center rounded-lg border p-1.5 text-muted-foreground transition-colors hover:text-foreground md:hidden"
+              className="flex items-center rounded-xl border border-white/10 p-1.5 text-muted-foreground transition-colors hover:text-[#fbefcb] md:hidden"
             >
               {mobileOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
@@ -301,7 +303,7 @@ export default function Nav() {
 
       {/* Mobile nav links (collapsible) */}
       {user && mobileOpen && (
-        <div className="border-t px-4 py-2 md:hidden">
+        <div className="border-t border-white/10 bg-black/10 px-4 py-2 md:hidden">
           <div className="flex flex-col gap-1">
             {LINKS.map((l) => (
               <NavItem

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { SunIcon, MoonIcon, MonitorIcon } from "@animateicons/react/lucide";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/PasswordInput";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/provider";
@@ -387,19 +388,20 @@ export default function SettingsPage() {
                 ? t("settings.aiKeySaved", { hint: aiKeys[aiProvider].hint })
                 : t("settings.aiKeyNone")}
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Input
-                type="password"
+            <div className="flex flex-wrap items-stretch gap-2">
+              <PasswordInput
                 autoComplete="off"
                 value={keyInput}
                 placeholder={t("settings.aiKeyPlaceholder")}
                 onChange={(e) => setKeyInput(e.target.value)}
-                className="max-w-sm flex-1"
+                className="min-w-0 max-w-sm flex-1"
+                showLabel={t("auth.showPassword")}
+                hideLabel={t("auth.hidePassword")}
               />
               <Button
                 onClick={saveKey}
                 disabled={savingKey || !keyInput.trim()}
-                className="h-9 px-4"
+                className="h-9 shrink-0 px-4"
               >
                 {t("common.save")}
               </Button>
